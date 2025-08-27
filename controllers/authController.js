@@ -4,7 +4,16 @@ const User = require("../models/User");
 const generateToken = (userId) =>
   jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
+const { validationResult } = require("express-validator");
+
 exports.register = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      message: "Invalid input",
+      errors: errors.array().map(e => ({ field: e.path, msg: e.msg }))
+    });
+  }
   const { email, password } = req.body;
   try {
     const existing = await User.findOne({ email });
@@ -19,6 +28,13 @@ exports.register = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      message: "Invalid input",
+      errors: errors.array().map(e => ({ field: e.path, msg: e.msg }))
+    });
+  }
   const { email, password } = req.body;
   try {
     const user = await User.findOne({ email });
